@@ -1,0 +1,409 @@
+{
+  "info": {
+    "_postman_id": "c1f7b8d4-5a3e-4b62-9e2c-soa-review1-rest",
+    "name": "Multi-Channel Restaurant Management System - SOA Review 1",
+    "description": "Postman test suite for Academic SOA Review 1 evaluating Eureka Discovery, API Gateway Routing, JWT Authentication, and RBAC.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "gateway_url", "value": "http://localhost:8080", "type": "string" },
+    { "key": "eureka_url", "value": "http://localhost:8761", "type": "string" },
+    { "key": "customer_token", "value": "", "type": "string" },
+    { "key": "admin_token", "value": "", "type": "string" },
+    { "key": "staff_token", "value": "", "type": "string" },
+    { "key": "customer_id", "value": "1", "type": "string" },
+    { "key": "created_item_id", "value": "1", "type": "string" },
+    { "key": "placed_order_id", "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "0. Service Discovery & Gateway Health",
+      "item": [
+        {
+          "name": "Check Eureka Dashboard (HTML)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{eureka_url}}", "host": ["{{eureka_url}}"] }
+          }
+        },
+        {
+          "name": "Check Eureka Registered Apps (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": { "raw": "{{eureka_url}}/eureka/apps", "host": ["{{eureka_url}}"], "path": ["eureka", "apps"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Authentication (User Service via Gateway)",
+      "item": [
+        {
+          "name": "1. Register CUSTOMER",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Customer\",\n  \"email\": \"democustomer@example.com\",\n  \"password\": \"Customer@123\",\n  \"role\": \"CUSTOMER\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/auth/register", "host": ["{{gateway_url}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "2. Register ADMIN",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Admin\",\n  \"email\": \"demoadmin@example.com\",\n  \"password\": \"Admin@123\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/auth/register", "host": ["{{gateway_url}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "3. Register STAFF",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Staff\",\n  \"email\": \"demostaff@example.com\",\n  \"password\": \"Staff@123\",\n  \"role\": \"STAFF\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/auth/register", "host": ["{{gateway_url}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "4. Login CUSTOMER (Get JWT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('customer_token', jsonData.token);",
+                  "    pm.collectionVariables.set('customer_id', jsonData.userId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Customer@123\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/auth/login", "host": ["{{gateway_url}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "5. Login ADMIN (Get JWT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('admin_token', jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/auth/login", "host": ["{{gateway_url}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "6. Login STAFF (Get JWT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('staff_token', jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@example.com\",\n  \"password\": \"Staff@123\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/auth/login", "host": ["{{gateway_url}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "7. Get User Info by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": { "raw": "{{gateway_url}}/api/users/{{customer_id}}", "host": ["{{gateway_url}}"], "path": ["api", "users", "{{customer_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Menu Service (via Gateway)",
+      "item": [
+        {
+          "name": "8. View Menu (Public / Customer)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": { "raw": "{{gateway_url}}/api/menu", "host": ["{{gateway_url}}"], "path": ["api", "menu"] }
+          }
+        },
+        {
+          "name": "9. Admin Adds Menu Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.itemId) {",
+                  "    pm.collectionVariables.set('created_item_id', jsonData.itemId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Butter Chicken with Naan\",\n  \"description\": \"Creamy tomato-based butter chicken gravy paired with freshly baked garlic butter naan\",\n  \"price\": 13.99,\n  \"availabilityStatus\": \"AVAILABLE\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/menu", "host": ["{{gateway_url}}"], "path": ["api", "menu"] }
+          }
+        },
+        {
+          "name": "10. Admin Updates Menu Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Butter Chicken with Garlic Naan\",\n  \"description\": \"Rich creamy butter chicken with 2 jumbo garlic butter naans\",\n  \"price\": 14.99,\n  \"availabilityStatus\": \"AVAILABLE\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/menu/{{created_item_id}}", "host": ["{{gateway_url}}"], "path": ["api", "menu", "{{created_item_id}}"] }
+          }
+        },
+        {
+          "name": "11. Admin Changes Item Availability (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"availabilityStatus\": \"UNAVAILABLE\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/menu/{{created_item_id}}/availability", "host": ["{{gateway_url}}"], "path": ["api", "menu", "{{created_item_id}}", "availability"] }
+          }
+        },
+        {
+          "name": "12. Customer Attempts Admin API (Expect 403 Forbidden)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauthorized Food\",\n  \"description\": \"Customer should not be able to add this\",\n  \"price\": 9.99,\n  \"availabilityStatus\": \"AVAILABLE\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/menu", "host": ["{{gateway_url}}"], "path": ["api", "menu"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Order Service & Inter-Service Verification (via Gateway)",
+      "item": [
+        {
+          "name": "13. Customer Places Order (Available Items -> 201 Created)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.orderId) {",
+                  "    pm.collectionVariables.set('placed_order_id', jsonData.orderId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{customer_id}},\n  \"items\": [\n    {\n      \"itemId\": 1,\n      \"quantity\": 2\n    },\n    {\n      \"itemId\": 5,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/orders", "host": ["{{gateway_url}}"], "path": ["api", "orders"] }
+          }
+        },
+        {
+          "name": "14. Customer Attempts Order with UNAVAILABLE Item (Expect 400 Bad Request)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{customer_id}},\n  \"items\": [\n    {\n      \"itemId\": 8,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/orders", "host": ["{{gateway_url}}"], "path": ["api", "orders"] }
+          }
+        },
+        {
+          "name": "15. Customer Views Own Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": { "raw": "{{gateway_url}}/api/orders/{{placed_order_id}}", "host": ["{{gateway_url}}"], "path": ["api", "orders", "{{placed_order_id}}"] }
+          }
+        },
+        {
+          "name": "16. Customer Views All Own Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": { "raw": "{{gateway_url}}/api/orders/user/{{customer_id}}", "host": ["{{gateway_url}}"], "path": ["api", "orders", "user", "{{customer_id}}"] }
+          }
+        },
+        {
+          "name": "17. Staff Views All Kitchen Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{staff_token}}" }
+            ],
+            "url": { "raw": "{{gateway_url}}/api/orders", "host": ["{{gateway_url}}"], "path": ["api", "orders"] }
+          }
+        },
+        {
+          "name": "18. Customer Attempts to View All Orders (Expect 403 Forbidden)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": { "raw": "{{gateway_url}}/api/orders", "host": ["{{gateway_url}}"], "path": ["api", "orders"] }
+          }
+        },
+        {
+          "name": "19. Staff Updates Order Status to PREPARING",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{staff_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PREPARING\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/orders/{{placed_order_id}}/status", "host": ["{{gateway_url}}"], "path": ["api", "orders", "{{placed_order_id}}", "status"] }
+          }
+        },
+        {
+          "name": "20. Customer Attempts to Update Status (Expect 403 Forbidden)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DELIVERED\"\n}"
+            },
+            "url": { "raw": "{{gateway_url}}/api/orders/{{placed_order_id}}/status", "host": ["{{gateway_url}}"], "path": ["api", "orders", "{{placed_order_id}}", "status"] }
+          }
+        },
+        {
+          "name": "21. Customer Tracks Updated Order",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": { "raw": "{{gateway_url}}/api/orders/{{placed_order_id}}", "host": ["{{gateway_url}}"], "path": ["api", "orders", "{{placed_order_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Security & JWT Validation Edge Cases",
+      "item": [
+        {
+          "name": "22. Request Without JWT Header (Expect 401 Unauthorized)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{gateway_url}}/api/orders", "host": ["{{gateway_url}}"], "path": ["api", "orders"] }
+          }
+        },
+        {
+          "name": "23. Request With Malformed/Tampered JWT (Expect 401 Unauthorized)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer thisIsAFakeInvalidAndTamperedJwtToken" }
+            ],
+            "url": { "raw": "{{gateway_url}}/api/menu/1", "host": ["{{gateway_url}}"], "path": ["api", "menu", "1"] }
+          }
+        }
+      ]
+    }
+  ]
+}
